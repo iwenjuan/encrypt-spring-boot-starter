@@ -1,6 +1,8 @@
 package cn.iwenjuan.encrypt.domain;
 
 import cn.iwenjuan.encrypt.enums.Algorithm;
+import cn.iwenjuan.encrypt.service.Decoder;
+import cn.iwenjuan.encrypt.service.Encipher;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
@@ -30,6 +32,14 @@ public class EncryptConfig implements Serializable {
      * 加密算法
      */
     private Algorithm algorithm;
+    /**
+     * 解密器
+     */
+    private Class<? extends Decoder> decoder;
+    /**
+     * 加密器
+     */
+    private Class<? extends Encipher> encipher;
     /**
      * 公钥
      */

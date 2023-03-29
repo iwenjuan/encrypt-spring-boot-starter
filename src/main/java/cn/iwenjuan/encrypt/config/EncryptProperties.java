@@ -1,6 +1,8 @@
 package cn.iwenjuan.encrypt.config;
 
 import cn.iwenjuan.encrypt.enums.Algorithm;
+import cn.iwenjuan.encrypt.service.Decoder;
+import cn.iwenjuan.encrypt.service.Encipher;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +26,14 @@ public class EncryptProperties {
      * 加密算法
      */
     private Algorithm algorithm = Algorithm.RSA;
+    /**
+     * 解密器
+     */
+    private Class<? extends Decoder> decoder;
+    /**
+     * 加密器
+     */
+    private Class<? extends Encipher> encipher;
     /**
      * 公钥
      */

@@ -6,4 +6,3 @@ spring:
     algorithm: aes
     public-key:
     private-key: aEsva0zDHECg47P8SuPzmw==
-#    ignore-request-decrypt-paths: /**

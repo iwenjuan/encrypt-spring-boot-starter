@@ -1,7 +1,9 @@
 package cn.iwenjuan.encrypt.filter;
 
 import cn.iwenjuan.encrypt.config.EncryptProperties;
+import cn.iwenjuan.encrypt.context.SpringApplicationContext;
 import cn.iwenjuan.encrypt.domain.EncryptConfig;
+import cn.iwenjuan.encrypt.enums.Algorithm;
 import cn.iwenjuan.encrypt.service.Decoder;
 import cn.iwenjuan.encrypt.service.EncryptConfigService;
 import cn.iwenjuan.encrypt.utils.ObjectUtils;
@@ -46,9 +48,6 @@ public class RequestDecryptFilter extends OncePerRequestFilter {
 
     @Resource
     private EncryptConfigService encryptConfigService;
-
-    @Resource
-    private Decoder decoder;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -123,7 +122,7 @@ public class RequestDecryptFilter extends OncePerRequestFilter {
         // URL参数解密
         String parameter = requestWrapper.getParameter(properties.getUrlParameterName());
         if (StringUtils.isNotBlank(parameter)) {
-            String decrypt = decoder.decrypt(parameter, config.getAlgorithm(), config.getPublicKey(), config.getPrivateKey());
+            String decrypt = decrypt(parameter, config);
             if (StringUtils.isNotBlank(decrypt)) {
                 Map<String, List<String>> parameterListMap = new HashMap<>(16);
                 String[] params = decrypt.split("&");
@@ -151,7 +150,7 @@ public class RequestDecryptFilter extends OncePerRequestFilter {
         String body = requestWrapper.getBody();
         if (StringUtils.isNotBlank(body)) {
             JSONObject jsonBody = JSONObject.parseObject(body);
-            String decrypt = decoder.decrypt(jsonBody.getString(properties.getBodyParameterName()), config.getAlgorithm(), config.getPublicKey(), config.getPrivateKey());
+            String decrypt = decrypt(jsonBody.getString(properties.getBodyParameterName()), config);
             if (StringUtils.isNotBlank(decrypt)) {
                 requestWrapper.setBody(decrypt);
             }
@@ -166,8 +165,25 @@ public class RequestDecryptFilter extends OncePerRequestFilter {
     private EncryptConfig getDefaultEncryptConfig() {
         return new EncryptConfig().setEnable(properties.isEnable())
                 .setAlgorithm(properties.getAlgorithm())
+                .setDecoder(properties.getDecoder())
                 .setPublicKey(properties.getPublicKey())
                 .setPrivateKey(properties.getPrivateKey());
+    }
+
+    /**
+     * 加密
+     * @param content
+     * @param config
+     * @return
+     */
+    private String decrypt(String content, EncryptConfig config) {
+        Algorithm algorithm = config.getAlgorithm();
+        Class<? extends Decoder> decoderClass = algorithm.getDecoder();
+        if (Algorithm.CUSTOM == algorithm) {
+            decoderClass = config.getDecoder();
+        }
+        Decoder decoder = SpringApplicationContext.getBean(decoderClass);
+        return decoder.decrypt(content, config.getPublicKey(), config.getPrivateKey());
     }
 
 }

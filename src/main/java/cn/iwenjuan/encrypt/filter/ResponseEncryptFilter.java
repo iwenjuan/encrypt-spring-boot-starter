@@ -1,7 +1,9 @@
 package cn.iwenjuan.encrypt.filter;
 
 import cn.iwenjuan.encrypt.config.EncryptProperties;
+import cn.iwenjuan.encrypt.context.SpringApplicationContext;
 import cn.iwenjuan.encrypt.domain.EncryptConfig;
+import cn.iwenjuan.encrypt.enums.Algorithm;
 import cn.iwenjuan.encrypt.service.Encipher;
 import cn.iwenjuan.encrypt.service.EncryptConfigService;
 import cn.iwenjuan.encrypt.utils.ObjectUtils;
@@ -47,9 +49,6 @@ public class ResponseEncryptFilter extends OncePerRequestFilter {
 
     @Resource
     private EncryptConfigService encryptConfigService;
-
-    @Resource
-    private Encipher encipher;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -132,7 +131,10 @@ public class ResponseEncryptFilter extends OncePerRequestFilter {
             // 不需要加密
             return content;
         }
-        return encipher.encrypt(content, config.getAlgorithm(), config.getPublicKey(), config.getPrivateKey());
+        Algorithm algorithm = config.getAlgorithm();
+        Class<? extends Encipher> encipherClass = algorithm.getEncipher();
+        Encipher encipher = SpringApplicationContext.getBean(encipherClass);
+        return encipher.encrypt(content, config.getPublicKey(), config.getPrivateKey());
     }
 
     /**
