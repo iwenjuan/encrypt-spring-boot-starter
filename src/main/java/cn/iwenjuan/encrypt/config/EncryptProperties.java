@@ -25,7 +25,7 @@ public class EncryptProperties {
     /**
      * 加密算法
      */
-    private Algorithm algorithm = Algorithm.RSA;
+    private Algorithm algorithm;
     /**
      * 解密器
      */

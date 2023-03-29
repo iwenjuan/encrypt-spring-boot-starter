@@ -4,6 +4,7 @@ import cn.iwenjuan.encrypt.config.EncryptProperties;
 import cn.iwenjuan.encrypt.context.SpringApplicationContext;
 import cn.iwenjuan.encrypt.domain.EncryptConfig;
 import cn.iwenjuan.encrypt.enums.Algorithm;
+import cn.iwenjuan.encrypt.exception.EncryptException;
 import cn.iwenjuan.encrypt.service.Encipher;
 import cn.iwenjuan.encrypt.service.EncryptConfigService;
 import cn.iwenjuan.encrypt.utils.ObjectUtils;
@@ -19,15 +20,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import javax.annotation.Resource;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -118,34 +114,24 @@ public class ResponseEncryptFilter extends OncePerRequestFilter {
      * @return
      */
     private String encryptResponseContent(HttpServletRequest request, String content) {
-
-        String appId = request.getHeader(properties.getAppIdHeaderName());
-        EncryptConfig config = null;
-        if (StringUtils.isBlank(appId)) {
-            // 没有请求头，使用默认的加解密配置
-            config = getDefaultEncryptConfig();
-        } else {
-            config = encryptConfigService.getEncryptConfig(appId);
+        if (StringUtils.isBlank(content)) {
+            return content;
         }
+        EncryptConfig config = encryptConfigService.getEncryptConfig(request, properties);
         if (!config.isEnable()) {
             // 不需要加密
             return content;
         }
         Algorithm algorithm = config.getAlgorithm();
+        if (algorithm == null) {
+            throw new EncryptException("算法类型不能为空");
+        }
         Class<? extends Encipher> encipherClass = algorithm.getEncipher();
+        if (encipherClass == null) {
+            throw new EncryptException("加密器不能为空");
+        }
         Encipher encipher = SpringApplicationContext.getBean(encipherClass);
         return encipher.encrypt(content, config.getPublicKey(), config.getPrivateKey());
-    }
-
-    /**
-     * 获取默认加解密配置
-     * @return
-     */
-    private EncryptConfig getDefaultEncryptConfig() {
-        return new EncryptConfig().setEnable(properties.isEnable())
-                .setAlgorithm(properties.getAlgorithm())
-                .setPublicKey(properties.getPublicKey())
-                .setPrivateKey(properties.getPrivateKey());
     }
 
 }

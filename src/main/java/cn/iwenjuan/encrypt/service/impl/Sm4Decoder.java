@@ -1,7 +1,9 @@
 package cn.iwenjuan.encrypt.service.impl;
 
+import cn.iwenjuan.encrypt.exception.DecryptException;
 import cn.iwenjuan.encrypt.service.Decoder;
 import cn.iwenjuan.encrypt.utils.Sm4Utils;
+import cn.iwenjuan.encrypt.utils.StringUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -13,6 +15,12 @@ public class Sm4Decoder implements Decoder {
 
     @Override
     public String decrypt(String content, String publicKey, String privateKey) {
+        if (StringUtils.isBlank(privateKey)) {
+            throw new DecryptException("秘钥不能为空");
+        }
+        if (StringUtils.isBlank(content)) {
+            return content;
+        }
         return Sm4Utils.decrypt(content, privateKey);
     }
 }

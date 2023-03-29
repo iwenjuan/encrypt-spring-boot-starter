@@ -4,6 +4,7 @@ import cn.iwenjuan.encrypt.config.EncryptProperties;
 import cn.iwenjuan.encrypt.context.SpringApplicationContext;
 import cn.iwenjuan.encrypt.domain.EncryptConfig;
 import cn.iwenjuan.encrypt.enums.Algorithm;
+import cn.iwenjuan.encrypt.exception.DecryptException;
 import cn.iwenjuan.encrypt.service.Decoder;
 import cn.iwenjuan.encrypt.service.EncryptConfigService;
 import cn.iwenjuan.encrypt.utils.ObjectUtils;
@@ -22,7 +23,6 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -107,16 +107,9 @@ public class RequestDecryptFilter extends OncePerRequestFilter {
     private RequestWrapper decryptRequestContent(HttpServletRequest request) {
 
         RequestWrapper requestWrapper = new RequestWrapper(request);
-        String appId = request.getHeader(properties.getAppIdHeaderName());
-        EncryptConfig config = null;
-        if (StringUtils.isBlank(appId)) {
-            // 没有请求头，使用默认的加解密配置
-            config = getDefaultEncryptConfig();
-        } else {
-            config = encryptConfigService.getEncryptConfig(appId);
-        }
+        EncryptConfig config = encryptConfigService.getEncryptConfig(request, properties);
         if (!config.isEnable()) {
-            // 不需要加密
+            // 不需要解密
             return requestWrapper;
         }
         // URL参数解密
@@ -124,6 +117,7 @@ public class RequestDecryptFilter extends OncePerRequestFilter {
         if (StringUtils.isNotBlank(parameter)) {
             String decrypt = decrypt(parameter, config);
             if (StringUtils.isNotBlank(decrypt)) {
+                // 解析参数
                 Map<String, List<String>> parameterListMap = new HashMap<>(16);
                 String[] params = decrypt.split("&");
                 for (String param : params) {
@@ -143,6 +137,7 @@ public class RequestDecryptFilter extends OncePerRequestFilter {
                     List<String> value = entry.getValue();
                     parameterMap.put(entry.getKey(), value.toArray(new String[value.size()]));
                 }
+                // 设置请求参数
                 requestWrapper.setParameterMap(parameterMap);
             }
         }
@@ -159,28 +154,25 @@ public class RequestDecryptFilter extends OncePerRequestFilter {
     }
 
     /**
-     * 获取默认加解密配置
-     * @return
-     */
-    private EncryptConfig getDefaultEncryptConfig() {
-        return new EncryptConfig().setEnable(properties.isEnable())
-                .setAlgorithm(properties.getAlgorithm())
-                .setDecoder(properties.getDecoder())
-                .setPublicKey(properties.getPublicKey())
-                .setPrivateKey(properties.getPrivateKey());
-    }
-
-    /**
      * 加密
      * @param content
      * @param config
      * @return
      */
     private String decrypt(String content, EncryptConfig config) {
+        if (StringUtils.isBlank(content)) {
+            return content;
+        }
         Algorithm algorithm = config.getAlgorithm();
+        if (algorithm == null) {
+            throw new DecryptException("算法类型不能为空");
+        }
         Class<? extends Decoder> decoderClass = algorithm.getDecoder();
         if (Algorithm.CUSTOM == algorithm) {
             decoderClass = config.getDecoder();
+        }
+        if (decoderClass == null) {
+            throw new DecryptException("解密器不能为空");
         }
         Decoder decoder = SpringApplicationContext.getBean(decoderClass);
         return decoder.decrypt(content, config.getPublicKey(), config.getPrivateKey());
