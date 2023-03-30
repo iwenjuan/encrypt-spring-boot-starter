@@ -23,6 +23,10 @@ public class EncryptProperties {
      */
     private boolean enable = false;
     /**
+     * 内部调用请求头，示例：inner=yes，当请求头包含inner，并且其值为yes时，不做加解密处理
+     */
+    private String internalHeader;
+    /**
      * 加密算法
      */
     private Algorithm algorithm;

@@ -49,27 +49,56 @@ public class ResponseEncryptFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
+        if (internalRequest(request)) {
+            // 内部请求，不需要对响应结果加密，直接放行
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String requestURI = request.getRequestURI();
         if (ignoreResponseEncrypt(requestURI)) {
             // 此接口不需要对响应结果加密，直接放行
             filterChain.doFilter(request, response);
-        } else {
-            // 对响应结果加密
-            ResponseWrapper wrapper = new ResponseWrapper(response);
-            // 执行方法，获取响应
-            filterChain.doFilter(request, wrapper);
-            // 响应内容
-            String content = wrapper.getContent();
-            // 对响应内容进行加密
-            content = encryptResponseContent(request, content);
-            try {
-                response.reset();
-                response.getWriter().write(content);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            return;
         }
 
+        // 对响应结果加密
+        ResponseWrapper wrapper = new ResponseWrapper(response);
+        // 执行方法，获取响应
+        filterChain.doFilter(request, wrapper);
+        // 响应内容
+        String content = wrapper.getContent();
+        // 对响应内容进行加密
+        content = encryptResponseContent(request, content);
+        try {
+            response.reset();
+            response.getWriter().write(content);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 判断是否是内部请求
+     * @param request
+     * @return
+     */
+    private boolean internalRequest(HttpServletRequest request) {
+        String internalHeader = properties.getInternalHeader();
+        if (StringUtils.isBlank(internalHeader)) {
+            return false;
+        }
+        String[] arr = internalHeader.split("=");
+        if (arr.length != 2) {
+            return false;
+        }
+        String headerName = arr[0];
+        String headerValue = arr[1];
+        String requestHeader = request.getHeader(headerName);
+        if (StringUtils.isBlank(requestHeader) || !requestHeader.equals(headerValue)) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -124,11 +153,11 @@ public class ResponseEncryptFilter extends OncePerRequestFilter {
         }
         Algorithm algorithm = config.getAlgorithm();
         if (algorithm == null) {
-            throw new EncryptException("算法类型不能为空");
+            throw new EncryptException("未找到加解密算法，请检查配置");
         }
         Class<? extends Encipher> encipherClass = algorithm.getEncipher();
         if (encipherClass == null) {
-            throw new EncryptException("加密器不能为空");
+            throw new EncryptException("未找到加密器，请检查配置");
         }
         Encipher encipher = SpringApplicationContext.getBean(encipherClass);
         return encipher.encrypt(content, config.getPublicKey(), config.getPrivateKey());

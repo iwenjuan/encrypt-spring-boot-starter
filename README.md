@@ -2,10 +2,11 @@
 
 ## 介绍
 1. 接口请求加解密，实现请求参数解密、响应结果加密
-2. 默认支持AES、DES、RSA、SM2、SM4算法
-3. 支持自定义算法，需要实现Decoder、Encipher（并注入到Spring的IOC容器），并配置自定义解密器（spring.encrypt.decoder）和加密器（spring.encrypt.encipher）
-4. 支持提供第三方调用接口时进行加解密配置，需实现EncryptConfigService接口，根据app-id-header-name配置获取请求头appId，根据appId查询加解密配置
-5. 目前只测试了SpringBoot 2.7.X版本
+2. 服务之间内部调用，配置spring.encrypt.internal-header，不需要加解密
+3. 默认支持AES、DES、RSA、SM2、SM4算法
+4. 支持自定义算法，需要实现Decoder、Encipher（并注入到Spring的IOC容器），并配置自定义解密器（spring.encrypt.decoder）和加密器（spring.encrypt.encipher）
+5. 支持提供第三方调用接口时进行独立的加解密配置，需实现EncryptConfigService接口，根据app-id-header-name配置获取请求头appId，根据appId查询加解密配置
+6. 目前只测试了SpringBoot 2.7.X版本
 
 ## 使用说明
 
@@ -36,6 +37,8 @@ spring:
   encrypt:
     # 是否启用
     enable: true
+    # 内部调用请求头，示例：inner=yes，当请求头包含inner，并且其值为yes时，不做加解密处理
+    internal-header: inner=yes
     # 加解密算法，支持AES、DES、RSA、SM2、SM4，支持自定义算法，需要实现Decoder、Encipher
     algorithm: aes
     # 自定义解密器
