@@ -8,9 +8,9 @@ public interface Encipher {
 
     /**
      * 加密
-     * @param content
-     * @param publicKey
-     * @param privateKey
+     * @param content       明文
+     * @param publicKey     公钥
+     * @param privateKey    私钥
      * @return
      */
     String encrypt(String content, String publicKey, String privateKey);

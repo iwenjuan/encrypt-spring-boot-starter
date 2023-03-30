@@ -8,9 +8,9 @@ public interface Decoder {
 
     /**
      * 解密
-     * @param content
-     * @param publicKey
-     * @param privateKey
+     * @param content       密文
+     * @param publicKey     公钥
+     * @param privateKey    私钥
      * @return
      */
     String decrypt(String content, String publicKey, String privateKey);
