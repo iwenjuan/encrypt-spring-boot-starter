@@ -18,6 +18,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -48,6 +49,11 @@ public class RequestDecryptFilter extends OncePerRequestFilter {
 
     @Resource
     private EncryptConfigService encryptConfigService;
+
+    @PostConstruct
+    public void postConstruct() {
+        getIgnoreRequestDecryptPatterns();
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {

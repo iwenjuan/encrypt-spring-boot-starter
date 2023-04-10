@@ -2,6 +2,8 @@ server:
   port: 8081
 
 spring:
+  jackson:
+    default-property-inclusion: non_null
   # 接口加解密配置
   encrypt:
     # 是否启用
@@ -20,8 +22,10 @@ spring:
     private-key: aEsva0zDHECg47P8SuPzmw==
     # 忽略请求参数解密接口
     ignore-request-decrypt-paths:
+      - /test/test1
     # 忽略响应结果加密接口
     ignore-response-encrypt-paths:
+      - /test/test1
     # appId请求头名称，提供给第三方调用接口时，根据此请求头值获取接口加解密配置，需实现EncryptConfigService接口
     app-id-header-name: app-id
     # url密文参数名称

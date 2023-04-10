@@ -17,6 +17,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -45,6 +46,11 @@ public class ResponseEncryptFilter extends OncePerRequestFilter {
 
     @Resource
     private EncryptConfigService encryptConfigService;
+
+    @PostConstruct
+    public void postConstruct() {
+        getIgnoreResponseEncryptPatterns();
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -108,7 +114,7 @@ public class ResponseEncryptFilter extends OncePerRequestFilter {
      */
     private boolean ignoreResponseEncrypt(String requestURI) {
 
-        List<Pattern> ignoreRequestDecryptPatterns = getIgnoreRequestDecryptPatterns();
+        List<Pattern> ignoreRequestDecryptPatterns = getIgnoreResponseEncryptPatterns();
         for (Pattern pattern : ignoreRequestDecryptPatterns) {
             if (pattern.matcher(requestURI).matches()) {
                 return true;
@@ -122,7 +128,7 @@ public class ResponseEncryptFilter extends OncePerRequestFilter {
      *
      * @return
      */
-    private List<Pattern> getIgnoreRequestDecryptPatterns() {
+    private List<Pattern> getIgnoreResponseEncryptPatterns() {
         if (ignoreResponseEncryptPatterns == null) {
             ignoreResponseEncryptPatterns = new ArrayList<>();
             List<String> ignoreRequestDecryptPaths = properties.getIgnoreResponseEncryptPaths();

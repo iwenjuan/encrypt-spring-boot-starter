@@ -25,7 +25,7 @@ public class ResponseWrapper extends HttpServletResponseWrapper {
 
     private void init(HttpServletResponse response) throws IOException {
         buffer = new ByteArrayOutputStream();
-        out = new WapperedOutputStream(buffer);
+        out = new OutputStreamWrapper(buffer);
         writer = new PrintWriter(new OutputStreamWriter(buffer));
     }
 
@@ -59,11 +59,11 @@ public class ResponseWrapper extends HttpServletResponseWrapper {
         buffer.reset();
     }
 
-    private class WapperedOutputStream extends ServletOutputStream {
+    private class OutputStreamWrapper extends ServletOutputStream {
 
         private ByteArrayOutputStream bos;
 
-        public WapperedOutputStream(ByteArrayOutputStream byteArrayOutputStream) throws IOException {
+        public OutputStreamWrapper(ByteArrayOutputStream byteArrayOutputStream) throws IOException {
             bos = byteArrayOutputStream;
         }
 
