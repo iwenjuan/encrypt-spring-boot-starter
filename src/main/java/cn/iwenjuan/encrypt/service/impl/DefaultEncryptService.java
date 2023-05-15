@@ -1,13 +1,13 @@
 package cn.iwenjuan.encrypt.service.impl;
 
 import cn.iwenjuan.encrypt.domain.EncryptConfig;
-import cn.iwenjuan.encrypt.service.EncryptConfigService;
+import cn.iwenjuan.encrypt.service.EncryptService;
 
 /**
  * @author li1244
  * @date 2023/3/29 13:13
  */
-public class DefaultEncryptConfigService implements EncryptConfigService {
+public class DefaultEncryptService implements EncryptService {
 
     private EncryptConfig encryptConfig;
 

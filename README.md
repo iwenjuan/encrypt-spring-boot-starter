@@ -37,6 +37,8 @@ spring:
   encrypt:
     # 是否启用
     enable: true
+    # 模式：filter（过滤器，通过ignoreRequestDecryptPaths、ignoreResponseEncryptPaths配置不需要加解密的接口）；annotation（注解，通过@Encrypt标记需要加解密的接口）
+    model: annotation
     # 内部调用请求头，示例：inner=yes，当请求头包含inner，并且其值为yes时，不做加解密处理
     internal-header: inner=yes
     # 加解密算法，支持AES、DES、RSA、SM2、SM4，支持自定义算法，需要实现Decoder、Encipher
@@ -86,7 +88,7 @@ String encrypt(String content, String publicKey, String privateKey);
 ~~~
 ### 5、第三方调用接口加解密配置
 
-###### 实现EncryptConfigService类（注入Spring的IOC容器），默认实现是返回不需要加密配置
+###### 实现EncryptService类（注入Spring的IOC容器），默认实现是返回不需要加密配置
 > appId参数来源：根据app-id-header-name配置的请求头名称，从request获取的请求头
 ~~~
 /**

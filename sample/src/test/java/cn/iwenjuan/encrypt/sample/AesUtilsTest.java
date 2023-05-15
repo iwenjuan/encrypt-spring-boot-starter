@@ -24,5 +24,9 @@ public class AesUtilsTest {
 
         String content = "/gleaJhDNSY+8Ieui2TGWN59iHtNNm6+SN9rGbklCGhKzSqf86oAoW+6RCi93FkNZbu/ba/JAjwTbB1tPQsohg==";
         System.out.println(AesUtils.decrypt(content, "aEsva0zDHECg47P8SuPzmw=="));
+
+        String conten = "/gleaJhDNSY+8Ieui2TGWN59iHtNNm6+SN9rGbklCGhKzSqf86oAoW+6RCi93FkNf+XFUSTBQ4pDz54g+8ztNWIKu6mbnmuDD8fRLbhgJ8mnJ8dS35EwGYBRs84xbjhb";
+        String key = "aEsva0zDHECg47P8SuPzmw==";
+        System.out.println(AesUtils.decrypt(conten, key));
     }
 }

@@ -1,6 +1,7 @@
 package cn.iwenjuan.encrypt.config;
 
 import cn.iwenjuan.encrypt.enums.Algorithm;
+import cn.iwenjuan.encrypt.enums.EncryptModel;
 import cn.iwenjuan.encrypt.service.Decoder;
 import cn.iwenjuan.encrypt.service.Encipher;
 import lombok.Data;
@@ -22,6 +23,10 @@ public class EncryptProperties {
      * 是否启用
      */
     private boolean enable = false;
+    /**
+     * 模式：filter（过滤器，通过ignoreRequestDecryptPaths、ignoreResponseEncryptPaths配置不需要加解密的接口）；annotation（注解，通过@Encrypt标记需要加解密的接口）
+     */
+    private EncryptModel model;
     /**
      * 内部调用请求头，示例：inner=yes，当请求头包含inner，并且其值为yes时，不做加解密处理
      */
