@@ -129,6 +129,9 @@ public class RequestDecryptServiceImpl implements RequestDecryptService {
      * @return
      */
     private boolean ignoreRequestDecrypt(HttpServletRequest request) {
+        if (!properties.isEnable()) {
+            return true;
+        }
         String requestURI = request.getRequestURI();
         EncryptModel encryptModel = properties.getModel();
         if (EncryptModel.filter == encryptModel) {
