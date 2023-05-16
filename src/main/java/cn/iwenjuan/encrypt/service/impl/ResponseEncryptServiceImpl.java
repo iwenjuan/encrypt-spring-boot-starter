@@ -101,7 +101,7 @@ public class ResponseEncryptServiceImpl implements ResponseEncryptService {
             return content;
         }
         EncryptConfig config = encryptService.getEncryptConfig(request, properties);
-        if (!config.isEnable()) {
+        if (config == null || !config.isEnable()) {
             // 不需要加密
             return content;
         }

@@ -78,7 +78,7 @@ public class RequestDecryptServiceImpl implements RequestDecryptService {
             return requestWrapper;
         }
         EncryptConfig config = encryptService.getEncryptConfig(request, properties);
-        if (!config.isEnable()) {
+        if (config == null || !config.isEnable()) {
             // 不需要解密，不做处理
             return requestWrapper;
         }
