@@ -7,6 +7,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.annotation.Resource;
 import javax.servlet.FilterChain;
@@ -32,6 +33,11 @@ public class ResponseEncryptFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
+        if (request instanceof MultipartHttpServletRequest) {
+            // 文件上传请求，直接放行
+            filterChain.doFilter(request, response);
+            return;
+        }
         if (responseEncryptService.ignoreResponseEncrypt(request)) {
             // 接口忽略请求结果加密，直接放行
             filterChain.doFilter(request, response);
