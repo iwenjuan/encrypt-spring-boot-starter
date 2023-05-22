@@ -6,7 +6,8 @@
 3. 默认支持AES、DES、RSA、SM2、SM4算法
 4. 支持自定义算法，需要实现Decoder、Encipher（并注入到Spring的IOC容器），并配置自定义解密器（spring.encrypt.decoder）和加密器（spring.encrypt.encipher）
 5. 支持提供第三方调用接口时进行独立的加解密配置，需实现EncryptConfigService接口，根据app-id-header-name配置获取请求头appId，根据appId查询加解密配置
-6. 目前只测试了SpringBoot 2.7.X版本
+6. 支持过滤器方式与注解方式切换，spring.encrypt.model=filter即为过滤器方式，此时根据spring.encrypt.ignore-request-decrypt-paths和spring.encrypt.ignore-response-encrypt-paths控制哪些接口不需要加解密；spring.encrypt.model=annotation即为注解方式，此时只需要在接口上添加@Encrypt注解即可实现接口加解密
+7. 目前只测试了SpringBoot 2.7.X版本
 
 ## 使用说明
 
