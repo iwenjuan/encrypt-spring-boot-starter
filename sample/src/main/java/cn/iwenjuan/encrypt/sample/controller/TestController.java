@@ -7,6 +7,7 @@ import cn.iwenjuan.encrypt.sample.domain.User;
 import com.alibaba.fastjson2.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -37,8 +38,10 @@ public class TestController {
         return ApiResult.success(user);
     }
 
-    @RequestMapping("{id}")
-    public ApiResult test3(@PathVariable("id") String id) {
-        return ApiResult.success();
+    @PostMapping("test3")
+    public ApiResult test3(MultipartHttpServletRequest request) {
+        Map<String, String[]> parameterMap = request.getParameterMap();
+        log.info(JSONObject.toJSONString(parameterMap));
+        return ApiResult.success(parameterMap);
     }
 }

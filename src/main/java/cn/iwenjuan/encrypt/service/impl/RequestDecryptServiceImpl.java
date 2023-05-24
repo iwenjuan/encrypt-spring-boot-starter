@@ -17,11 +17,12 @@ import cn.iwenjuan.encrypt.utils.PatternUtils;
 import cn.iwenjuan.encrypt.utils.StringUtils;
 import cn.iwenjuan.encrypt.wrappers.RequestWrapper;
 import com.alibaba.fastjson2.JSONObject;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.http.fileupload.servlet.ServletFileUpload;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.method.HandlerMethod;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -38,6 +39,7 @@ import java.util.regex.Pattern;
  * @date 2023/5/12 11:00
  */
 @Service
+@Slf4j
 public class RequestDecryptServiceImpl implements RequestDecryptService {
 
     private List<Pattern> ignoreRequestDecryptPatterns = null;
@@ -65,8 +67,9 @@ public class RequestDecryptServiceImpl implements RequestDecryptService {
     @Override
     public ServletRequest decrypt(HttpServletRequest request) {
 
-        if (request instanceof MultipartHttpServletRequest) {
-            // 文件上传请求，不做处理
+        boolean multipartContent = ServletFileUpload.isMultipartContent(request);
+        if (multipartContent) {
+            // form表单提交请求，不做处理
             return request;
         }
         RequestWrapper requestWrapper = new RequestWrapper(request);
