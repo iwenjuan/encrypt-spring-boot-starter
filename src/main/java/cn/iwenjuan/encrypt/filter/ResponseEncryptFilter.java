@@ -1,7 +1,6 @@
 package cn.iwenjuan.encrypt.filter;
 
 import cn.iwenjuan.encrypt.service.ResponseEncryptService;
-import cn.iwenjuan.encrypt.wrappers.RequestWrapper;
 import cn.iwenjuan.encrypt.wrappers.ResponseWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.servlet.ServletFileUpload;
@@ -40,20 +39,19 @@ public class ResponseEncryptFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        RequestWrapper requestWrapper = new RequestWrapper(request);
         if (responseEncryptService.ignoreResponseEncrypt(request)) {
             // 接口忽略请求结果加密，直接放行
-            filterChain.doFilter(requestWrapper, response);
+            filterChain.doFilter(request, response);
             return;
         }
 
         ResponseWrapper wrapper = new ResponseWrapper(response);
         // 执行方法，获取响应
-        filterChain.doFilter(requestWrapper, wrapper);
+        filterChain.doFilter(request, wrapper);
         // 响应内容
         String content = wrapper.getContent();
         // 对响应结果加密
-        content = responseEncryptService.encrypt(requestWrapper, content);
+        content = responseEncryptService.encrypt(request, content);
         // 返回响应结果
         try {
             response.reset();

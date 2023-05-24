@@ -1,5 +1,6 @@
 package cn.iwenjuan.encrypt.context;
 
+import cn.iwenjuan.encrypt.utils.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -86,7 +87,14 @@ public class SpringApplicationContext implements BeanFactoryPostProcessor, Appli
     }
 
     public static String getContextPath() {
-        return getProperty("server.servlet.context-path");
+        String contextPath = getProperty("server.servlet.context-path");
+        if (StringUtils.isBlank(contextPath) || "/".equals(contextPath)) {
+            return "";
+        }
+        if (contextPath.endsWith("/")) {
+            contextPath = contextPath.substring(0, contextPath.length() - 1);
+        }
+        return contextPath;
     }
 
     public static String[] getActiveProfiles() {

@@ -44,6 +44,8 @@ public class RequestDecryptServiceImpl implements RequestDecryptService {
 
     private List<Pattern> ignoreRequestDecryptPatterns = null;
 
+    private String contextPath;
+
     @Resource
     private EncryptProperties properties;
 
@@ -56,9 +58,13 @@ public class RequestDecryptServiceImpl implements RequestDecryptService {
     @PostConstruct
     public void initIgnoreRequestDecryptPatterns() {
         ignoreRequestDecryptPatterns = new ArrayList<>();
+        contextPath = SpringApplicationContext.getContextPath();
         List<String> ignoreRequestDecryptPaths = properties.getIgnoreRequestDecryptPaths();
         if (ObjectUtils.isNotEmpty(ignoreRequestDecryptPaths)) {
             for (String ignoreRequestDecryptPath : ignoreRequestDecryptPaths) {
+                if (StringUtils.isNotBlank(contextPath) && ignoreRequestDecryptPath.startsWith(contextPath)) {
+                    ignoreRequestDecryptPath = ignoreRequestDecryptPath.substring(ignoreRequestDecryptPath.indexOf(contextPath) + contextPath.length());
+                }
                 ignoreRequestDecryptPatterns.add(Pattern.compile(PatternUtils.getPathRegStr(ignoreRequestDecryptPath)));
             }
         }
@@ -73,11 +79,6 @@ public class RequestDecryptServiceImpl implements RequestDecryptService {
             return request;
         }
         RequestWrapper requestWrapper = new RequestWrapper(request);
-        if (encryptService.isInternalRequest(request, properties)) {
-            // 内部请求，不做处理
-            return requestWrapper;
-        }
-
         if (ignoreRequestDecrypt(requestWrapper)) {
             // 此接口不需要对请求参数解密，不做处理
             return requestWrapper;
@@ -134,9 +135,16 @@ public class RequestDecryptServiceImpl implements RequestDecryptService {
         if (!properties.isEnable()) {
             return true;
         }
-        String requestURI = request.getRequestURI();
+        if (encryptService.isInternalRequest(request, properties)) {
+            // 内部请求，不做处理
+            return true;
+        }
         EncryptModel encryptModel = properties.getModel();
         if (EncryptModel.filter == encryptModel) {
+            String requestURI = request.getRequestURI();
+            if (StringUtils.isNotBlank(contextPath)) {
+                requestURI = requestURI.substring(requestURI.indexOf(contextPath) + contextPath.length());
+            }
             for (Pattern pattern : ignoreRequestDecryptPatterns) {
                 if (pattern.matcher(requestURI).matches()) {
                     return true;

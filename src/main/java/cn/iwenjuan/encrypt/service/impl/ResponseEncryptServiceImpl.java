@@ -34,6 +34,8 @@ public class ResponseEncryptServiceImpl implements ResponseEncryptService {
 
     private List<Pattern> ignoreResponseEncryptPatterns = null;
 
+    private String contextPath;
+
     @Resource
     private EncryptProperties properties;
 
@@ -46,9 +48,13 @@ public class ResponseEncryptServiceImpl implements ResponseEncryptService {
     @PostConstruct
     private void initIgnoreResponseEncryptPatterns() {
         ignoreResponseEncryptPatterns = new ArrayList<>();
+        contextPath = SpringApplicationContext.getContextPath();
         List<String> ignoreRequestDecryptPaths = properties.getIgnoreResponseEncryptPaths();
         if (ObjectUtils.isNotEmpty(ignoreRequestDecryptPaths)) {
             for (String ignoreRequestDecryptPath : ignoreRequestDecryptPaths) {
+                if (StringUtils.isNotBlank(contextPath) && ignoreRequestDecryptPath.startsWith(contextPath)) {
+                    ignoreRequestDecryptPath = ignoreRequestDecryptPath.substring(ignoreRequestDecryptPath.indexOf(contextPath) + contextPath.length());
+                }
                 ignoreResponseEncryptPatterns.add(Pattern.compile(PatternUtils.getPathRegStr(ignoreRequestDecryptPath)));
             }
         }
@@ -63,9 +69,12 @@ public class ResponseEncryptServiceImpl implements ResponseEncryptService {
             // 内部请求，不需要对响应结果加密
             return true;
         }
-        String requestURI = request.getRequestURI();
         EncryptModel encryptModel = properties.getModel();
         if (EncryptModel.filter == encryptModel) {
+            String requestURI = request.getRequestURI();
+            if (StringUtils.isNotBlank(contextPath)) {
+                requestURI = requestURI.substring(requestURI.indexOf(contextPath) + contextPath.length());
+            }
             for (Pattern pattern : ignoreResponseEncryptPatterns) {
                 if (pattern.matcher(requestURI).matches()) {
                     return true;
