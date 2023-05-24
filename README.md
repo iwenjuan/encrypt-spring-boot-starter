@@ -132,11 +132,27 @@ private String privateKey;
 ~~~
 ## 注意事项
 
-### 选择SM2、SM4国密算法需要额外引入相关依赖
+### 1.选择SM2、SM4国密算法需要额外引入相关依赖
 ~~~
 <dependency>
     <groupId>org.bouncycastle</groupId>
     <artifactId>bcprov-jdk15on</artifactId>
     <version>1.69</version>
 </dependency>
+~~~
+### 2.url传递密文参数，需对密文进行url编码，避免特殊字符被特殊处理，接口接收到的密文参数不对，解密失败
+~~~
+明文：name=张三&age=18
+秘钥：aEsva0zDHECg47P8SuPzmw==
+AES加密后的密文：iUsLSI20HSTBPutZTZlEEk1R/rtnKRScqn+1f0N1xAY=
+
+情景一：密文参数不做url编码处理
+发送请求时url参数：en=iUsLSI20HSTBPutZTZlEEk1R/rtnKRScqn+1f0N1xAY=
+接口接收到url参数：en=iUsLSI20HSTBPutZTZlEEk1R/rtnKRScqn 1f0N1xAY=
+此时AES解密异常
+
+情景二：密文参数进行url编码处理
+发送请求时url参数：en=iUsLSI20HSTBPutZTZlEEk1R%2FrtnKRScqn%2B1f0N1xAY%3D
+接口接收到url参数：en=iUsLSI20HSTBPutZTZlEEk1R/rtnKRScqn+1f0N1xAY=
+此时接口正常响应
 ~~~
