@@ -18,6 +18,8 @@ import cn.iwenjuan.encrypt.utils.StringUtils;
 import cn.iwenjuan.encrypt.wrappers.RequestWrapper;
 import com.alibaba.fastjson2.JSONObject;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
@@ -89,22 +91,18 @@ public class RequestDecryptServiceImpl implements RequestDecryptService {
             String decrypt = decrypt(parameter, config);
             if (StringUtils.isNotBlank(decrypt)) {
                 // 解析参数
-                Map<String, List<String>> parameterListMap = new HashMap<>(16);
+                MultiValueMap<String, String> multiParameterMap = new LinkedMultiValueMap<>();
                 String[] params = decrypt.split("&");
                 for (String param : params) {
                     String[] array = param.split("=");
                     if (array.length == 2) {
                         String parameterName = array[0];
-                        List<String> parameterValues = parameterListMap.get(parameterName);
-                        if (parameterValues == null) {
-                            parameterValues = new ArrayList<>();
-                        }
-                        parameterValues.add(array[1]);
-                        parameterListMap.put(parameterName, parameterValues);
+                        String parameterValue = array[1];
+                        multiParameterMap.add(parameterName, parameterValue);
                     }
                 }
                 Map<String, String[]> parameterMap = new HashMap<>(16);
-                for (Map.Entry<String, List<String>> entry : parameterListMap.entrySet()) {
+                for (Map.Entry<String, List<String>> entry : multiParameterMap.entrySet()) {
                     List<String> value = entry.getValue();
                     parameterMap.put(entry.getKey(), value.toArray(new String[value.size()]));
                 }
