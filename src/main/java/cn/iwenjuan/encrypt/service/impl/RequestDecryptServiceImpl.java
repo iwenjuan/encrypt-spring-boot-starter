@@ -85,6 +85,7 @@ public class RequestDecryptServiceImpl implements RequestDecryptService {
         // URL参数解密
         String parameter = requestWrapper.getParameter(properties.getUrlParameterName());
         if (StringUtils.isNotBlank(parameter)) {
+            parameter = parameter.replaceAll(" ", "+");
             String decrypt = decrypt(parameter, config);
             if (StringUtils.isNotBlank(decrypt)) {
                 // 解析参数
