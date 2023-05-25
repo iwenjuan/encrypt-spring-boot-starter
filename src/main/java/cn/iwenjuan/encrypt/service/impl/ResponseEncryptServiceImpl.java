@@ -62,7 +62,10 @@ public class ResponseEncryptServiceImpl implements ResponseEncryptService {
 
     @Override
     public boolean ignoreResponseEncrypt(HttpServletRequest request) {
-        if (!properties.isEnable()) {
+        // 获取加解密配置
+        EncryptConfig config = encryptService.getEncryptConfig(request, properties);
+        if (config == null || !config.isEnable()) {
+            // 加解密配置为空，或配置不需要加密
             return true;
         }
         if (encryptService.isInternalRequest(request, properties)) {

@@ -83,6 +83,7 @@ public class RequestDecryptServiceImpl implements RequestDecryptService {
             // 此接口不需要对请求参数解密，不做处理
             return requestWrapper;
         }
+        // 获取加解密配置
         EncryptConfig config = encryptService.getEncryptConfig(request, properties);
         if (config == null || !config.isEnable()) {
             // 不需要解密，不做处理
@@ -132,9 +133,6 @@ public class RequestDecryptServiceImpl implements RequestDecryptService {
      * @return
      */
     private boolean ignoreRequestDecrypt(HttpServletRequest request) {
-        if (!properties.isEnable()) {
-            return true;
-        }
         if (encryptService.isInternalRequest(request, properties)) {
             // 内部请求，不做处理
             return true;
