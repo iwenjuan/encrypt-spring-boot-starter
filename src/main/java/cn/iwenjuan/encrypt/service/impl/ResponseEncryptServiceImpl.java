@@ -1,28 +1,24 @@
 package cn.iwenjuan.encrypt.service.impl;
 
-import cn.iwenjuan.encrypt.annotation.Encrypt;
 import cn.iwenjuan.encrypt.config.EncryptProperties;
 import cn.iwenjuan.encrypt.context.SpringApplicationContext;
 import cn.iwenjuan.encrypt.domain.EncryptConfig;
 import cn.iwenjuan.encrypt.enums.Algorithm;
 import cn.iwenjuan.encrypt.enums.EncryptModel;
-import cn.iwenjuan.encrypt.enums.EncryptStrategy;
 import cn.iwenjuan.encrypt.exception.EncryptException;
 import cn.iwenjuan.encrypt.service.Encipher;
 import cn.iwenjuan.encrypt.service.EncryptService;
 import cn.iwenjuan.encrypt.service.RequestMappingService;
 import cn.iwenjuan.encrypt.service.ResponseEncryptService;
-import cn.iwenjuan.encrypt.utils.ObjectUtils;
-import cn.iwenjuan.encrypt.utils.PatternUtils;
 import cn.iwenjuan.encrypt.utils.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.web.method.HandlerMethod;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -32,7 +28,7 @@ import java.util.regex.Pattern;
 @Service
 public class ResponseEncryptServiceImpl implements ResponseEncryptService {
 
-    private List<Pattern> ignoreResponseEncryptPatterns = null;
+    private Map<Pattern, String> ignoreResponseEncryptPatternMap;
 
     private String contextPath;
 
@@ -47,59 +43,73 @@ public class ResponseEncryptServiceImpl implements ResponseEncryptService {
 
     @PostConstruct
     private void initIgnoreResponseEncryptPatterns() {
-        ignoreResponseEncryptPatterns = new ArrayList<>();
+        ignoreResponseEncryptPatternMap = new HashMap<>(16);
+        // 获取上下文路径
         contextPath = SpringApplicationContext.getContextPath();
-        List<String> ignoreRequestDecryptPaths = properties.getIgnoreResponseEncryptPaths();
-        if (ObjectUtils.isNotEmpty(ignoreRequestDecryptPaths)) {
-            for (String ignoreRequestDecryptPath : ignoreRequestDecryptPaths) {
-                if (StringUtils.isNotBlank(contextPath) && ignoreRequestDecryptPath.startsWith(contextPath)) {
-                    ignoreRequestDecryptPath = ignoreRequestDecryptPath.substring(ignoreRequestDecryptPath.indexOf(contextPath) + contextPath.length());
-                }
-                ignoreResponseEncryptPatterns.add(Pattern.compile(PatternUtils.getPathRegStr(ignoreRequestDecryptPath)));
+        // 获取application.yml配置的忽略响应加密的接口
+        Set<String> ignoreResponseEncryptPaths = properties.getIgnoreResponseEncryptPaths();
+        for (String ignoreResponseEncryptPath : ignoreResponseEncryptPaths) {
+            // “#”分隔符之前的是接口地址，“#”分隔符之后的是接口的请求方法（如：GET,POST)，多个方法以“,”隔开，没有“#”分隔符或“#”分隔符后面的内容为空，代表匹配所有请求方法
+            String[] array = ignoreResponseEncryptPath.split("#");
+            // 接口地址
+            String path = array[0];
+            if (StringUtils.isNotBlank(contextPath) && path.startsWith(contextPath)) {
+                // 接口地址去掉上下文路径，方便后续正则匹配
+                path = path.substring(path.indexOf(contextPath) + contextPath.length());
+            }
+            Pattern pattern = Pattern.compile(path);
+            if (array.length < 2) {
+                ignoreResponseEncryptPatternMap.put(pattern, "ALL");
+            } else {
+                // 匹配的接口请求方法（如：GET,POST)，多个方法以“,”隔开
+                String requestMethods = array[1];
+                ignoreResponseEncryptPatternMap.put(pattern, requestMethods);
             }
         }
     }
 
     @Override
     public boolean ignoreResponseEncrypt(HttpServletRequest request) {
+        if (encryptService.isInternalRequest(request, properties)) {
+            // 内部请求，不需要对响应结果加密
+            return true;
+        }
         // 获取加解密配置
         EncryptConfig config = encryptService.getEncryptConfig(request, properties);
         if (config == null || !config.isEnable()) {
             // 加解密配置为空，或配置不需要加密
             return true;
         }
-        if (encryptService.isInternalRequest(request, properties)) {
-            // 内部请求，不需要对响应结果加密
-            return true;
+        String requestURI = request.getRequestURI();
+        String method = request.getMethod().toUpperCase();
+        // 请求接口地址去掉上下文路径，方便正则匹配
+        if (StringUtils.isNotBlank(contextPath)) {
+            requestURI = requestURI.substring(requestURI.indexOf(contextPath) + contextPath.length());
         }
         EncryptModel encryptModel = properties.getModel();
-        if (EncryptModel.filter == encryptModel) {
-            String requestURI = request.getRequestURI();
-            if (StringUtils.isNotBlank(contextPath)) {
-                requestURI = requestURI.substring(requestURI.indexOf(contextPath) + contextPath.length());
-            }
-            for (Pattern pattern : ignoreResponseEncryptPatterns) {
-                if (pattern.matcher(requestURI).matches()) {
-                    return true;
-                }
-            }
+        if (EncryptModel.FILTER == encryptModel) {
+            return matches(requestURI, method, ignoreResponseEncryptPatternMap);
         }
-        if (EncryptModel.annotation == encryptModel) {
-            // 获取目标Controller的处理方法
-            HandlerMethod handlerMethod = requestMappingService.getHandlerMethod(request);
-            if (handlerMethod == null) {
-                return true;
-            }
-            // 获取目标方法上的@Encrypt注解
-            Encrypt encrypt = handlerMethod.getMethodAnnotation(Encrypt.class);
-            if (encrypt == null) {
-                return true;
-            }
-            if (!encrypt.enable()) {
-                return true;
-            }
-            EncryptStrategy strategy = encrypt.strategy();
-            if (EncryptStrategy.RESPONSE != strategy && EncryptStrategy.REQUEST_AND_RESPONSE != strategy) {
+        if (EncryptModel.ANNOTATION == encryptModel) {
+            // 获取@Encrypt注解标记忽略响应加密的接口
+            Map<Pattern, String> ignoreResponseEncryptPatternMap = requestMappingService.getIgnoreResponseEncryptPatternMap();
+            return matches(requestURI, method, ignoreResponseEncryptPatternMap);
+        }
+        return false;
+    }
+
+    /**
+     * 正则匹配是否忽略响应加密
+     * @param requestURI
+     * @param method
+     * @param ignoreResponseEncryptPatternMap
+     * @return
+     */
+    private boolean matches(String requestURI, String method, Map<Pattern, String> ignoreResponseEncryptPatternMap) {
+        for (Map.Entry<Pattern, String> entry : ignoreResponseEncryptPatternMap.entrySet()) {
+            Pattern pattern = entry.getKey();
+            String requestMethods = entry.getValue();
+            if (pattern.matcher(requestURI).matches() && (requestMethods.contains(method) || requestMethods.contains("ALL"))) {
                 return true;
             }
         }

@@ -29,15 +29,15 @@ public interface EncryptService {
                     .setEncipher(properties.getEncipher())
                     .setPublicKey(properties.getPublicKey())
                     .setPrivateKey(properties.getPrivateKey());
-        } else {
-            config = getEncryptConfig(header);
+            return config;
         }
-        return config;
+        return getEncryptConfig(header);
     }
 
     /**
      * 判断是否是内部请求
      * @param request
+     * @param properties
      * @return
      */
     default boolean isInternalRequest(HttpServletRequest request, EncryptProperties properties) {

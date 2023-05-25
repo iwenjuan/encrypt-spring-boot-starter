@@ -6,6 +6,6 @@ package cn.iwenjuan.encrypt.enums;
  */
 public enum EncryptModel {
 
-    filter,
-    annotation;
+    FILTER,
+    ANNOTATION;
 }

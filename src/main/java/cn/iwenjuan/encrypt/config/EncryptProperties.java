@@ -8,7 +8,7 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author li1244
@@ -54,11 +54,11 @@ public class EncryptProperties {
     /**
      * 忽略请求参数解密接口
      */
-    private List<String> ignoreRequestDecryptPaths;
+    private Set<String> ignoreRequestDecryptPaths;
     /**
      * 忽略响应结果加密接口
      */
-    private List<String> ignoreResponseEncryptPaths;
+    private Set<String> ignoreResponseEncryptPaths;
     /**
      * appId请求头名称
      */

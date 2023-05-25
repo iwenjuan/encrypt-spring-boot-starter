@@ -23,7 +23,7 @@ import java.util.Map;
 public class TestController {
 
     @GetMapping("test1")
-    @Encrypt()
+    @Encrypt(enable = false)
     public ApiResult test1(User user, HttpServletRequest request) {
         Map<String, String[]> parameterMap = request.getParameterMap();
         log.info(JSONObject.toJSONString(parameterMap));

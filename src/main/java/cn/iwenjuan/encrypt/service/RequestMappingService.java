@@ -1,8 +1,7 @@
 package cn.iwenjuan.encrypt.service;
 
-import org.springframework.web.method.HandlerMethod;
-
-import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * @author li1244
@@ -11,9 +10,14 @@ import javax.servlet.http.HttpServletRequest;
 public interface RequestMappingService {
 
     /**
-     * 获取目标Controller的处理方法
-     * @param request
+     * 获取忽略请求解密的接口
      * @return
      */
-    HandlerMethod getHandlerMethod(HttpServletRequest request);
+    Map<Pattern, String> getIgnoreRequestDecryptPatternMap();
+
+    /**
+     * 获取忽略响应加密的接口
+     * @return
+     */
+    Map<Pattern, String> getIgnoreResponseEncryptPatternMap();
 }
