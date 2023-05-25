@@ -22,11 +22,12 @@ import java.util.Map;
 @Slf4j
 public class TestController {
 
-    @GetMapping("test1")
-    @Encrypt(enable = false)
-    public ApiResult test1(User user, HttpServletRequest request) {
+    @GetMapping("/{user-id}/test1")
+    @Encrypt(strategy = EncryptStrategy.REQUEST)
+    public ApiResult test1(@PathVariable("user-id") String userId, User user, HttpServletRequest request) {
         Map<String, String[]> parameterMap = request.getParameterMap();
         log.info(JSONObject.toJSONString(parameterMap));
+        user.setId(userId);
         return ApiResult.success(user);
     }
 

@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 @Service
 public class RequestMappingServiceImpl implements RequestMappingService {
 
-    private static final String PATH_PARAM_REGEX = "\\{\\w+}";
+    private static final String PATH_PARAM_REGEX = "\\{[\\w-]+}";
 
     private Map<Pattern, String> ignoreRequestDecryptPatternMap;
 

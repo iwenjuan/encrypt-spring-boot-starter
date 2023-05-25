@@ -21,12 +21,14 @@ public class PatternUtils {
             if (chars[i] == '*') {
                 // 遇到*字符
                 if (preX) {
-                    // 如果是第二次遇到*，则将**替换成.*
-                    builder.append(".*");
+                    // 如果是第二次遇到*，则将**替换成.+
+                    // .+的含义是匹配一个或多个任意字符
+                    builder.append(".+");
                     preX = false;
                 } else if (i + 1 == len) {
-                    // 如果是遇到单星，且单星是最后一个字符，则直接将*转成[^/]*
-                    builder.append("[^/]*");
+                    // 如果是遇到单星，且单星是最后一个字符，则直接将*转成[^/]+
+                    // [^/]+的含义是匹配一个或多个非”/”字符
+                    builder.append("[^/]+");
                 } else {
                     // 否则单星后面还有字符，则不做任何动作，下一把再做动作
                     preX = true;
@@ -35,8 +37,9 @@ public class PatternUtils {
             } else {
                 // 遇到非*字符
                 if (preX) {
-                    // 如果上一把是*，则先把上一把的*对应的[^/]*添进来
-                    builder.append("[^/]*");
+                    // 如果上一把是*，则先把上一把的*对应的[^/]+添进来
+                    // [^/]+的含义是匹配一个或多个非”/”字符
+                    builder.append("[^/]+");
                     preX = false;
                 }
                 if (chars[i] == '?') {
